@@ -12,7 +12,7 @@
             background-color: #f0f4f8;
         }
         .container {
-            max-width: 32rem;
+            max-width: 48rem;
         }
         .scramble-card {
             background-color: #ffffff;
@@ -92,6 +92,9 @@
             <h2 class="text-2xl font-bold text-sky-700 mb-4">Game Over!</h2>
             <p id="final-score" class="text-xl font-semibold text-gray-800 mb-6"></p>
             <p class="text-gray-600">Great job! You've completed the game. Keep practicing to become a cloud expert.</p>
+            <div class="mt-6">
+                <button id="restart-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Restart Game</button>
+            </div>
         </div>
     </div>
 
@@ -274,6 +277,7 @@
             const currentQuestionDisplay = document.getElementById('current-question');
             const endScreen = document.getElementById('end-screen');
             const finalScoreDisplay = document.getElementById('final-score');
+            const restartButton = document.getElementById('restart-button');
 
             const unscrambleStep = document.getElementById('unscramble-step');
             const scrambledText = document.getElementById('scrambled-text');
@@ -322,7 +326,7 @@
                     timerDisplay.textContent = `Time: ${timer}`;
                     if (timer <= 0) {
                         clearInterval(timerInterval);
-                        revealAnswer();
+                        revealButton.classList.remove('hide');
                     }
                 }, 1000);
             };
@@ -455,6 +459,10 @@
             };
 
             startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', () => {
+                endScreen.classList.add('hide');
+                startScreen.classList.remove('hide');
+            });
 
             guessInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter' && !guessedCorrectly) {
