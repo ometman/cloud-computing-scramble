@@ -12,7 +12,7 @@
             background-color: #f0f4f8;
         }
         .container {
-            max-width: 48rem;
+            max-width: 32rem;
         }
         .scramble-card {
             background-color: #ffffff;
@@ -351,7 +351,6 @@
             };
 
             const revealAnswer = () => {
-                clearInterval(timerInterval);
                 guessInput.disabled = true;
                 revealButton.classList.add('hide');
                 scrambledText.textContent = gameData[currentQuestionIndex].word;
@@ -445,6 +444,7 @@
                     });
                 }
                 updateScore();
+                clearInterval(timerInterval); // Stop the timer when the round is complete
                 nextButtonContainer.classList.remove('hide');
             };
 
