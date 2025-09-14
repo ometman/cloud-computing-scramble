@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Terminology Scramble</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .container {
+            max-width: 48rem;
+        }
+        .scramble-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .definition-option, .scenario-option {
+            background-color: #e0f2fe;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .definition-option:hover, .scenario-option:hover {
+            background-color: #d0e8fd;
+        }
+        .correct {
+            background-color: #dcfce7;
+            border-color: #4ade80;
+        }
+        .incorrect {
+            background-color: #fee2e2;
+            border-color: #f87171;
+        }
+        .hide {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="container w-full bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-center text-sky-700 mb-6">Cloud Terminology Scramble! ☁️</h1>
+        <p class="text-gray-600 text-center mb-8">Test your knowledge of cloud computing by unscrambling terms and matching them to the correct definitions and scenarios.</p>
+
+        <div id="start-screen" class="text-center">
+            <button id="start-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">Start Game</button>
+        </div>
+
+        <div id="game-container" class="hide space-y-8">
+            <div class="flex justify-between items-center text-gray-600 font-semibold text-lg">
+                <span id="score">Score: 0</span>
+                <span id="timer">Time: 60</span>
+                <span id="current-question">Question: 1/10</span>
+            </div>
+
+            <div id="unscramble-step" class="text-center space-y-6">
+                <h3 class="text-xl font-semibold text-gray-700">Step 1: Unscramble the Term</h3>
+                <div class="scramble-card">
+                    <p id="scrambled-text" class="text-3xl font-mono text-gray-800 tracking-wide"></p>
+                </div>
+                <input type="text" id="guess-input" placeholder="Type your guess here..." class="w-full text-center text-lg p-3 rounded-md border-2 border-gray-300 focus:outline-none focus:border-sky-500">
+                <button id="reveal-button" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors hide">Reveal Answer</button>
+                <p id="guess-feedback" class="mt-4 text-center text-lg font-semibold"></p>
+            </div>
+
+            <div id="definition-step" class="hide space-y-6">
+                <h3 class="text-xl font-semibold text-gray-700">Step 2: Choose the Correct Definition</h3>
+                <div id="definitions-list" class="space-y-4"></div>
+                <p id="definition-feedback" class="mt-4 text-center text-lg font-semibold"></p>
+            </div>
+            
+            <div id="scenario-step" class="hide space-y-6">
+                <h3 class="text-xl font-semibold text-gray-700">Step 3: Choose the Correct Scenario</h3>
+                <div id="scenarios-list" class="space-y-4"></div>
+                <p id="scenario-feedback" class="mt-4 text-center text-lg font-semibold"></p>
+            </div>
+
+            <div id="next-button-container" class="text-center hide">
+                <button id="next-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Next</button>
+            </div>
+        </div>
+
+        <div id="end-screen" class="text-center hide">
+            <h2 class="text-2xl font-bold text-sky-700 mb-4">Game Over!</h2>
+            <p id="final-score" class="text-xl font-semibold text-gray-800 mb-6"></p>
+            <p class="text-gray-600">Great job! You've completed the game. Keep practicing to become a cloud expert.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameData = [
+                {
+                    word: "IAAS",
+                    scrambled: "S A A I",
+                    definitions: [
+                        { text: "A method for automatically provisioning resources based on demand.", isCorrect: false },
+                        { text: "A complete platform for building and deploying applications.", isCorrect: false },
+                        { text: "A service that provides virtualized computing resources like servers and networking over the internet.", isCorrect: true },
+                        { text: "A business model where a provider sells software applications to customers.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A business rents virtualized servers and storage from a provider, but manages the OS and applications itself.", isCorrect: true },
+                        { text: "A company uses a cloud-based email service without installing any software.", isCorrect: false },
+                        { text: "A developer builds an application without having to manage the underlying servers.", isCorrect: false },
+                        { text: "A company stores its data on a physical server in its own data center.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "SAAS",
+                    scrambled: "A S A S",
+                    definitions: [
+                        { text: "A billing model where you pay for resources as you use them.", isCorrect: false },
+                        { text: "A service that provides virtualized computing resources.", isCorrect: false },
+                        { text: "A method of delivering software applications over the internet on a subscription basis.", isCorrect: true },
+                        { text: "A complete platform for building and deploying applications.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A developer builds a mobile app on a pre-configured cloud platform.", isCorrect: false },
+                        { text: "A company subscribes to a cloud-based email service, which is fully managed by the provider, without needing to install any software.", isCorrect: true },
+                        { text: "A web developer distributes incoming traffic across multiple servers.", isCorrect: false },
+                        { text: "A self-contained package that bundles an application with all its dependencies.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "ELASTICITY",
+                    scrambled: "T Y T E L I C I A",
+                    definitions: [
+                        { text: "The ability of a system to handle a growing workload by adding resources.", isCorrect: false },
+                        { text: "The ability of a system to automatically scale resources up or down based on real-time demand.", isCorrect: true },
+                        { text: "A plan to restore a company's operations after a disaster.", isCorrect: false },
+                        { text: "The practice of using multiple cloud providers for different services.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "An e-commerce site automatically provisions more servers during a Black Friday sale to handle the increased traffic, and then scales back down afterward.", isCorrect: true },
+                        { text: "A company successfully moves an application from one cloud provider to another.", isCorrect: false },
+                        { text: "A developer uses a set of definitions to allow their application to access a cloud service.", isCorrect: false },
+                        { text: "A hospital uses a private network for patient data and a public cloud for its website.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "PAAS",
+                    scrambled: "P S A A",
+                    definitions: [
+                        { text: "A framework that defines the security responsibilities between a cloud provider and a customer.", isCorrect: false },
+                        { text: "A method of delivering software applications over the internet.", isCorrect: false },
+                        { text: "A service that provides virtualized computing resources.", isCorrect: false },
+                        { text: "A comprehensive platform with tools and infrastructure for developing, deploying, and managing applications.", isCorrect: true }
+                    ],
+                    scenarios: [
+                        { text: "A business rents a virtual machine and manages the operating system and applications itself.", isCorrect: false },
+                        { text: "A developer needs a pre-configured platform with all the tools required for coding, testing, and deploying a web app without managing the underlying servers.", isCorrect: true },
+                        { text: "A company subscribes to a fully managed email service.", isCorrect: false },
+                        { text: "A user is charged based on the total number of minutes a service is used.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "HYBRID CLOUD",
+                    scrambled: "Y R H I D B C L O D U",
+                    definitions: [
+                        { text: "A cloud environment owned and operated by a third-party provider and shared among many customers.", isCorrect: false },
+                        { text: "A cloud computing environment that combines a public and a private cloud, allowing data and applications to be shared between them.", isCorrect: true },
+                        { text: "A cloud environment used exclusively by a single business or organization.", isCorrect: false },
+                        { text: "The use of multiple cloud providers to avoid vendor lock-in.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A company keeps some sensitive data on its own on-premises servers while using a public cloud for its website and email.", isCorrect: true },
+                        { text: "An independent developer uses a pay-as-you-go service where resources are shared among many customers.", isCorrect: false },
+                        { text: "A company backs up its data to a cloud-based server in case of a hardware failure.", isCorrect: false },
+                        { text: "A company successfully moves its application from one cloud provider to another.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "CONTAINER",
+                    scrambled: "C O N T A N I E R",
+                    definitions: [
+                        { text: "A virtual version of a physical computer that runs its own operating system.", isCorrect: false },
+                        { text: "A framework where the cloud provider and customer share security responsibility.", isCorrect: false },
+                        { text: "A type of storage where data is stored as a single object with metadata.", isCorrect: false },
+                        { text: "A self-contained package that bundles an application with all its dependencies, ensuring it runs consistently across environments.", isCorrect: true }
+                    ],
+                    scenarios: [
+                        { text: "A developer uses a virtual machine to run a guest operating system.", isCorrect: false },
+                        { text: "A company implements a plan to restore its operations after a disaster.", isCorrect: false },
+                        { text: "A developer packages a web app with all its libraries and dependencies so it can be deployed on any server without modification.", isCorrect: true },
+                        { text: "A user stores unstructured data like images and videos in the cloud.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "SERVERLESS",
+                    scrambled: "V R S E S E L R",
+                    definitions: [
+                        { text: "A method of distributing traffic across multiple servers to prevent overload.", isCorrect: false },
+                        { text: "The ability of a system to handle a growing workload by adding more resources.", isCorrect: false },
+                        { text: "A type of computing that allows developers to build and run applications without managing the underlying servers.", isCorrect: true },
+                        { text: "A plan to restore a company's operations after a disaster.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A company implements a plan to back up its data to ensure business continuity.", isCorrect: false },
+                        { text: "A developer writes a function that runs in the cloud and scales automatically, only using resources when an event triggers it.", isCorrect: true },
+                        { text: "A company uses a service to deliver web content to users based on their location.", isCorrect: false },
+                        { text: "A web developer distributes incoming traffic across multiple servers to improve performance.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "SCALABILITY",
+                    scrambled: "A L C A B I L T Y I",
+                    definitions: [
+                        { text: "The ability of a cloud system to handle a growing workload or increasing demand by adding more resources.", isCorrect: true },
+                        { text: "A billing model where you pay for what you use.", isCorrect: false },
+                        { text: "The ability of a system to automatically scale resources up or down based on real-time demand.", isCorrect: false },
+                        { text: "A physical server located within a company's data center.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A company increases its compute resources to handle a growing number of users, ensuring the application remains responsive.", isCorrect: true },
+                        { text: "A company stores its data on a physical server in its own data center.", isCorrect: false },
+                        { text: "An e-commerce site automatically provisions more servers during a flash sale.", isCorrect: false },
+                        { text: "A method of distributing traffic across multiple servers.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "MULTICLOUD",
+                    scrambled: "M U T I C D O L C U",
+                    definitions: [
+                        { text: "A cloud computing environment that combines a public and a private cloud.", isCorrect: false },
+                        { text: "The use of multiple cloud computing and storage services from different cloud vendors to avoid dependence on a single provider.", isCorrect: true },
+                        { text: "A type of storage where data is stored in a hierarchical file system.", isCorrect: false },
+                        { text: "The process of moving applications and data from on-premises to the cloud.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A company keeps some sensitive data on its own on-premises servers while using a public cloud for its website.", isCorrect: false },
+                        { text: "An independent developer uses a pay-as-you-go service where resources are shared among many customers.", isCorrect: false },
+                        { text: "A company utilizes services from both AWS and Azure to spread its workloads and get the best features from each platform.", isCorrect: true },
+                        { text: "A company uses a service to deliver web content to users based on their location.", isCorrect: false }
+                    ]
+                },
+                {
+                    word: "ON PREMISE",
+                    scrambled: "O N O P R I M E S E",
+                    definitions: [
+                        { text: "A type of cloud computing that uses a public cloud provider.", isCorrect: false },
+                        { text: "A cloud environment used exclusively by a single business or organization.", isCorrect: false },
+                        { text: "An organization's IT infrastructure is physically located and managed within its own data center.", isCorrect: true },
+                        { text: "A method of creating a virtual version of a physical resource.", isCorrect: false }
+                    ],
+                    scenarios: [
+                        { text: "A company runs all of its applications on its own physical servers located in a data center at its headquarters.", isCorrect: true },
+                        { text: "A company uses a pay-as-you-go service where resources are shared among many customers.", isCorrect: false },
+                        { text: "A company keeps some data on its own servers while using a public cloud for other services.", isCorrect: false },
+                        { text: "A developer builds and runs an application without managing the underlying servers.", isCorrect: false }
+                    ]
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let timerInterval;
+            let timer = 60;
+            let guessedCorrectly = false;
+
+            const startScreen = document.getElementById('start-screen');
+            const gameContainer = document.getElementById('game-container');
+            const startButton = document.getElementById('start-button');
+            const scoreDisplay = document.getElementById('score');
+            const timerDisplay = document.getElementById('timer');
+            const currentQuestionDisplay = document.getElementById('current-question');
+            const endScreen = document.getElementById('end-screen');
+            const finalScoreDisplay = document.getElementById('final-score');
+
+            const unscrambleStep = document.getElementById('unscramble-step');
+            const scrambledText = document.getElementById('scrambled-text');
+            const guessInput = document.getElementById('guess-input');
+            const revealButton = document.getElementById('reveal-button');
+            const guessFeedback = document.getElementById('guess-feedback');
+
+            const definitionStep = document.getElementById('definition-step');
+            const definitionsList = document.getElementById('definitions-list');
+            const definitionFeedback = document.getElementById('definition-feedback');
+
+            const scenarioStep = document.getElementById('scenario-step');
+            const scenariosList = document.getElementById('scenarios-list');
+            const scenarioFeedback = document.getElementById('scenario-feedback');
+
+            const nextButtonContainer = document.getElementById('next-button-container');
+            const nextButton = document.getElementById('next-button');
+
+            const shuffle = (str) => {
+                let array = str.split('');
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array.join(' ');
+            };
+
+            const startGame = () => {
+                startScreen.classList.add('hide');
+                gameContainer.classList.remove('hide');
+                score = 0;
+                currentQuestionIndex = 0;
+                updateScore();
+                loadQuestion();
+            };
+
+            const updateScore = () => {
+                scoreDisplay.textContent = `Score: ${score}`;
+            };
+
+            const startTimer = () => {
+                timer = 60;
+                timerDisplay.textContent = `Time: ${timer}`;
+                timerInterval = setInterval(() => {
+                    timer--;
+                    timerDisplay.textContent = `Time: ${timer}`;
+                    if (timer <= 0) {
+                        clearInterval(timerInterval);
+                        revealAnswer();
+                    }
+                }, 1000);
+            };
+
+            const loadQuestion = () => {
+                if (currentQuestionIndex >= 10) {
+                    endGame();
+                    return;
+                }
+
+                currentQuestionDisplay.textContent = `Question: ${currentQuestionIndex + 1}/10`;
+                const term = gameData[currentQuestionIndex];
+                scrambledText.textContent = shuffle(term.word);
+                guessInput.value = '';
+                guessInput.disabled = false;
+                guessFeedback.textContent = '';
+                revealButton.classList.add('hide');
+
+                unscrambleStep.classList.remove('hide');
+                definitionStep.classList.add('hide');
+                scenarioStep.classList.add('hide');
+                nextButtonContainer.classList.add('hide');
+
+                guessedCorrectly = false;
+                startTimer();
+            };
+
+            const revealAnswer = () => {
+                clearInterval(timerInterval);
+                guessInput.disabled = true;
+                revealButton.classList.add('hide');
+                scrambledText.textContent = gameData[currentQuestionIndex].word;
+                if (guessInput.value.toUpperCase() === gameData[currentQuestionIndex].word) {
+                    guessFeedback.textContent = "Correct! You get 1 point.";
+                    guessFeedback.classList.add('text-green-600');
+                    score++;
+                    guessedCorrectly = true;
+                } else {
+                    guessFeedback.textContent = `Incorrect. The answer is ${gameData[currentQuestionIndex].word}.`;
+                    guessFeedback.classList.add('text-red-600');
+                }
+                updateScore();
+                showDefinitions();
+            };
+
+            const showDefinitions = () => {
+                unscrambleStep.classList.add('hide');
+                definitionStep.classList.remove('hide');
+                definitionsList.innerHTML = '';
+                definitionFeedback.textContent = '';
+
+                const term = gameData[currentQuestionIndex];
+                const shuffledDefinitions = [...term.definitions].sort(() => Math.random() - 0.5);
+
+                shuffledDefinitions.forEach(def => {
+                    const div = document.createElement('div');
+                    div.className = 'definition-option';
+                    div.textContent = def.text;
+                    div.addEventListener('click', () => handleDefinitionClick(div, def.isCorrect));
+                    definitionsList.appendChild(div);
+                });
+            };
+            
+            const handleDefinitionClick = (div, isCorrect) => {
+                if (definitionFeedback.textContent) return; 
+
+                if (isCorrect) {
+                    div.classList.add('correct');
+                    definitionFeedback.textContent = "Correct! You get 1 point.";
+                    definitionFeedback.classList.add('text-green-600');
+                    score++;
+                } else {
+                    div.classList.add('incorrect');
+                    definitionFeedback.textContent = "Incorrect. The correct answer is highlighted.";
+                    definitionFeedback.classList.add('text-red-600');
+                    definitionsList.querySelectorAll('.definition-option').forEach(option => {
+                        if (option.textContent === gameData[currentQuestionIndex].definitions.find(d => d.isCorrect).text) {
+                            option.classList.add('correct');
+                        }
+                    });
+                }
+                updateScore();
+                showScenarios();
+            };
+
+            const showScenarios = () => {
+                definitionStep.classList.add('hide');
+                scenarioStep.classList.remove('hide');
+                scenariosList.innerHTML = '';
+                scenarioFeedback.textContent = '';
+
+                const term = gameData[currentQuestionIndex];
+                const shuffledScenarios = [...term.scenarios].sort(() => Math.random() - 0.5);
+
+                shuffledScenarios.forEach(scen => {
+                    const div = document.createElement('div');
+                    div.className = 'scenario-option';
+                    div.textContent = scen.text;
+                    div.addEventListener('click', () => handleScenarioClick(div, scen.isCorrect));
+                    scenariosList.appendChild(div);
+                });
+            };
+
+            const handleScenarioClick = (div, isCorrect) => {
+                if (scenarioFeedback.textContent) return;
+
+                if (isCorrect) {
+                    div.classList.add('correct');
+                    scenarioFeedback.textContent = "Correct! You get 1 point.";
+                    scenarioFeedback.classList.add('text-green-600');
+                    score++;
+                } else {
+                    div.classList.add('incorrect');
+                    scenarioFeedback.textContent = "Incorrect. The correct answer is highlighted.";
+                    scenarioFeedback.classList.add('text-red-600');
+                    scenariosList.querySelectorAll('.scenario-option').forEach(option => {
+                        if (option.textContent === gameData[currentQuestionIndex].scenarios.find(s => s.isCorrect).text) {
+                            option.classList.add('correct');
+                        }
+                    });
+                }
+                updateScore();
+                nextButtonContainer.classList.remove('hide');
+            };
+
+            const endGame = () => {
+                gameContainer.classList.add('hide');
+                endScreen.classList.remove('hide');
+                finalScoreDisplay.textContent = `Your final score is ${score} out of 30.`;
+            };
+
+            startButton.addEventListener('click', startGame);
+
+            guessInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter' && !guessedCorrectly) {
+                    const term = gameData[currentQuestionIndex];
+                    if (e.target.value.toUpperCase() === term.word) {
+                        guessedCorrectly = true;
+                        revealAnswer();
+                    }
+                }
+            });
+
+            revealButton.addEventListener('click', revealAnswer);
+
+            nextButton.addEventListener('click', () => {
+                currentQuestionIndex++;
+                loadQuestion();
+            });
+        });
+    </script>
+</body>
+</html>
